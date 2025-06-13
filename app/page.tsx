@@ -8,10 +8,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       const res = await fetch("/api/login", {
@@ -22,21 +24,28 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (res.ok && data.success) {
+        if (res.ok && data.success) {
         router.push("/dashboard");
       } else {
         setError(data.message || "Erreur lors de la connexion");
       }
+
     } catch (err) {
-      console.error("Erreur réseau", err);
-      setError("Erreur de serveur. Veuillez réessayer.");
+      setError("Erreur serveur. Veuillez réessayer.");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-5">
+      <form
+        onSubmit={handleLogin}
+        className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-5"
+      >
         <h2 className="text-2xl font-bold text-center text-indigo-600">Connexion</h2>
+
         {error && <p className="text-red-500">{error}</p>}
 
         <input
@@ -46,7 +55,11 @@ export default function LoginPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={loading}
+          autoComplete="email"
+          autoFocus
         />
+
         <input
           type="password"
           placeholder="Mot de passe"
@@ -54,9 +67,20 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          disabled={loading}
+          autoComplete="current-password"
         />
-        <button className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">
-          Se connecter
+
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full py-2 rounded text-white ${
+            loading
+              ? "bg-indigo-400 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-700 transition"
+          }`}
+        >
+          {loading ? "Connexion..." : "Se connecter"}
         </button>
 
         <p className="text-center text-sm text-gray-600">
