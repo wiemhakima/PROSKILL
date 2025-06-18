@@ -8,23 +8,35 @@ export async function POST(req: NextRequest) {
   try {
     await dbConnect();
 
-    const { email, password } = await req.json();
+    const { email, password, firstName, lastName, phone, birthDate } = await req.json();
 
-    if (!email || !password) {
+    // Vérification simple des champs obligatoires
+    if (!email || !password || !firstName || !lastName) {
       return NextResponse.json({ error: "Champs requis manquants" }, { status: 400 });
     }
 
+    // Vérifier si email existe déjà
     const userExist = await User.findOne({ email });
     if (userExist) {
       return NextResponse.json({ error: "Email déjà utilisé" }, { status: 409 });
     }
 
+    // Hash du mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ email, password: hashedPassword });
+
+    // Créer utilisateur avec tous les champs
+    const newUser = await User.create({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      phone,
+      birthDate: birthDate ? new Date(birthDate) : null,
+    });
 
     return NextResponse.json({
       message: "✅ Utilisateur créé avec succès",
-      user: { email: newUser.email },
+      user: { email: newUser.email, firstName: newUser.firstName, lastName: newUser.lastName },
     });
   } catch (error) {
     console.error("Erreur signup :", error);

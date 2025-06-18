@@ -24,7 +24,11 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-        if (res.ok && data.success) {
+      if (res.ok && data.success) {
+        // ✅ Stocker l'utilisateur complet + l'email seul
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("email", data.user.email);
+
         router.push("/dashboard");
       } else {
         setError(data.message || "Erreur lors de la connexion");

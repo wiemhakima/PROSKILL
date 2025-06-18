@@ -1,18 +1,28 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function Signup() {
+export default function SignupPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    birthDate: "",
+  });
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -21,83 +31,116 @@ export default function Signup() {
       const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // Rediriger vers login après inscription réussie
-        router.push("/");
+        alert(data.message);
+        router.push("/");  // rediriger vers login après inscription
       } else {
-        setError(data.error || "Erreur lors de l'inscription");
+        setError(data.error || "Erreur lors de la création du compte");
       }
     } catch (err) {
-      console.error("Erreur réseau", err);
       setError("Erreur serveur. Veuillez réessayer.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center text-indigo-600">Créer un compte</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-5"
+      >
+        <h2 className="text-2xl font-bold text-center text-indigo-600">Créer un compte</h2>
 
-        {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+        {error && <p className="text-red-500">{error}</p>}
 
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="mt-1 p-2 w-full border rounded"
-              placeholder="Entrez votre email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
+        <input
+          name="firstName"
+          type="text"
+          placeholder="Prénom"
+          value={formData.firstName}
+          onChange={handleChange}
+          required
+          className="w-full p-3 border rounded"
+          disabled={loading}
+          autoComplete="given-name"
+        />
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Mot de passe
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="mt-1 p-2 w-full border rounded"
-              placeholder="Entrez votre mot de passe"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
+        <input
+          name="lastName"
+          type="text"
+          placeholder="Nom"
+          value={formData.lastName}
+          onChange={handleChange}
+          required
+          className="w-full p-3 border rounded"
+          disabled={loading}
+          autoComplete="family-name"
+        />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-2 rounded text-white ${
-              loading ? "bg-indigo-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 transition"
-            }`}
-          >
-            {loading ? "Création..." : "Créer un compte"}
-          </button>
-        </form>
+        <input
+          name="email"
+          type="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          className="w-full p-3 border rounded"
+          disabled={loading}
+          autoComplete="email"
+        />
 
-        <p className="mt-6 text-center text-gray-600">
-          Déjà un compte ?{" "}
-          <Link href="/" className="text-indigo-600 hover:underline font-medium">
-            Connexion
-          </Link>
-        </p>
-      </div>
+        <input
+          name="phone"
+          type="tel"
+          placeholder="Téléphone"
+          value={formData.phone}
+          onChange={handleChange}
+          className="w-full p-3 border rounded"
+          disabled={loading}
+          autoComplete="tel"
+        />
+
+        <input
+          name="birthDate"
+          type="date"
+          placeholder="Date de naissance"
+          value={formData.birthDate}
+          onChange={handleChange}
+          className="w-full p-3 border rounded"
+          disabled={loading}
+        />
+
+        <input
+          name="password"
+          type="password"
+          placeholder="Mot de passe"
+          value={formData.password}
+          onChange={handleChange}
+          required
+          className="w-full p-3 border rounded"
+          disabled={loading}
+          autoComplete="new-password"
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full py-2 rounded text-white ${
+            loading
+              ? "bg-indigo-400 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-700 transition"
+          }`}
+        >
+          {loading ? "Création..." : "Créer un compte"}
+        </button>
+      </form>
     </div>
   );
 }
